@@ -45,6 +45,7 @@ import com.oasisfeng.island.appops.AppOpsCompat
 import com.oasisfeng.island.mobile.BuildConfig
 import com.oasisfeng.island.mobile.R
 import com.oasisfeng.island.notification.NotificationIds
+import com.oasisfeng.island.provisioning.identity.IdentityGenerator
 import com.oasisfeng.island.setup.IslandSetup
 import com.oasisfeng.island.util.*
 
@@ -59,6 +60,9 @@ class IslandSettingsFragment: android.preference.PreferenceFragment() {
         super.onResume()
         val activity = activity
         val multiple = Users.getProfilesManagedByIsland().size > 1
+
+        setup<Preference>("key_identity_model") { summary = IdentityGenerator.getActiveIdentityModel(activity) }
+        setup<Preference>("key_identity_android_id") { summary = IdentityGenerator.getActiveIdentityAndroidId(activity) }
         activity.title = (if (multiple) preferenceManager.sharedPreferences.getString(getString(R.string.key_island_name), null) else null)
                 ?: IslandNameManager.getDefaultName(activity)
 

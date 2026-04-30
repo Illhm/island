@@ -28,11 +28,20 @@ public class IdentityGenerator {
 
     // Templates for popular devices
     private static final List<DeviceTemplate> TEMPLATES = Arrays.asList(
-            new DeviceTemplate("Pixel 5", "google/redfin/redfin:11/RQ3A.210905.001/7511028:user/release-keys", "RQ3A.210905.001"),
-            new DeviceTemplate("Pixel 6", "google/oriole/oriole:12/SD1A.210817.036/7805805:user/release-keys", "SD1A.210817.036"),
-            new DeviceTemplate("SM-G991B", "samsung/o1sxx/o1s:11/RP1A.200720.012/G991BXXU3AUF6:user/release-keys", "RP1A.200720.012"),
-            new DeviceTemplate("SM-G998B", "samsung/p3sxx/p3s:11/RP1A.200720.012/G998BXXU3AUF6:user/release-keys", "RP1A.200720.012"),
-            new DeviceTemplate("OnePlus 9", "OnePlus/OnePlus9/OnePlus9:11/RKQ1.201105.002/2107082119:user/release-keys", "RKQ1.201105.002")
+            new DeviceTemplate("Pixel 9", "google/tokay/tokay:15/AP3A.241005.015/1234567:user/release-keys", "AP3A.241005.015"),
+            new DeviceTemplate("Pixel 9 Pro", "google/caiman/caiman:15/AP3A.241005.015/1234567:user/release-keys", "AP3A.241005.015"),
+            new DeviceTemplate("Pixel 9 Pro XL", "google/komodo/komodo:15/AP3A.241005.015/1234567:user/release-keys", "AP3A.241005.015"),
+            new DeviceTemplate("Pixel 10", "google/pixel10/pixel10:16/BP1A.251005.010/1357924:user/release-keys", "BP1A.251005.010"),
+            new DeviceTemplate("SM-S928B", "samsung/e3sxx/e3s:15/UP1A.231005.007/S928BXXU1AXB5:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("SM-S938B", "samsung/e4sxx/e4s:16/VP1A.241005.008/S938BXXU1AXC6:user/release-keys", "VP1A.241005.008"),
+            new DeviceTemplate("Find X8", "Oppo/FindX8/FindX8:15/UP1A.231005.007/2405082119:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("Find X8 Pro", "Oppo/FindX8Pro/FindX8Pro:15/UP1A.231005.007/2405082120:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("V2309A", "vivo/PD2309/PD2309:15/UP1A.231005.007/2405082119:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("V2329A", "vivo/PD2329/PD2329:15/UP1A.231005.007/2405082120:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("Xiaomi 14", "Xiaomi/houji/houji:15/UP1A.231005.007/2405082119:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("Xiaomi 15 Ultra", "Xiaomi/aurora/aurora:16/VP1A.241005.008/2505082119:user/release-keys", "VP1A.241005.008"),
+            new DeviceTemplate("Mate 60", "HUAWEI/ALN-AL00/ALN-AL00:15/UP1A.231005.007/2405082119:user/release-keys", "UP1A.231005.007"),
+            new DeviceTemplate("Mate 70", "HUAWEI/Mate70-AL00/Mate70-AL00:16/VP1A.241005.008/2505082119:user/release-keys", "VP1A.241005.008")
     );
 
     public static void generateAndSaveIdentity(Context context) {
@@ -73,17 +82,23 @@ public class IdentityGenerator {
     }
 
     private static String modifyFingerprint(String baseFingerprint, String newBuildId) {
-        // Simple modification: replace the build ID part in the fingerprint
+        // Find the build ID block in the fingerprint, which is generally the 4th element separated by '/'
         String[] parts = baseFingerprint.split("/");
         if (parts.length > 3) {
             String oldBuildId = parts[3];
-            for (int i = 0; i < parts.length; i++) {
-                if (parts[i].contains(oldBuildId)) {
-                     parts[i] = parts[i].replace(oldBuildId, newBuildId);
-                }
-            }
+            return baseFingerprint.replace(oldBuildId, newBuildId);
         }
-        return TextUtils.join("/", parts);
+        return baseFingerprint;
+    }
+
+    public static String getActiveIdentityModel(Context context) {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(PREF_KEY_MODEL, "Unknown");
+    }
+
+    public static String getActiveIdentityAndroidId(Context context) {
+        return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                .getString(PREF_KEY_ANDROID_ID, "Unknown");
     }
 
     private static class DeviceTemplate {
