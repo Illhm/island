@@ -124,6 +124,10 @@ public class Users extends PseudoContentProvider {
 		final UserHandle user = intent.getParcelableExtra(Intent.EXTRA_USER);
 		Log.i(TAG, (added ? "Profile added: " : "Profile removed: ") + (user != null ? String.valueOf(toId(user)) : "null"));
 
+		if (Intent.ACTION_MANAGED_PROFILE_REMOVED.equals(intent.getAction()) && user != null) {
+			FakeIdentityManager.clearIdentity(context, user);
+		}
+
 		refreshUsers(context);
 	}};
 
