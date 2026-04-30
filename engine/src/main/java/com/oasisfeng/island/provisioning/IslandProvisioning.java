@@ -43,6 +43,7 @@ import com.oasisfeng.island.engine.R;
 import com.oasisfeng.island.notification.NotificationIds;
 import com.oasisfeng.island.shuttle.ServiceShuttle;
 import com.oasisfeng.island.util.DevicePolicies;
+import com.oasisfeng.island.util.FakeIdentityManager;
 import com.oasisfeng.island.util.Modules;
 import com.oasisfeng.island.util.OwnerUser;
 import com.oasisfeng.island.util.ProfileUser;
@@ -332,6 +333,10 @@ public class IslandProvisioning extends IntentService {
 		if (SDK_INT >= O) policies.invoke(DevicePolicyManager::setPermittedCrossProfileNotificationListeners, null);
 
 		if (! owner) startProfileOwnerPostProvisioningForNonOwnerProfile(context, policies);
+
+		// Generate Fake Identity for the newly provisioned profile
+		FakeIdentityManager.generateAndStoreIdentity(context, Process.myUserHandle());
+		FakeIdentityManager.applyIdentity(context, Process.myUserHandle());
 	}
 
 	@ProfileUser private static void startProfileOwnerPostProvisioningForNonOwnerProfile(final Context context, final DevicePolicies policies) {
