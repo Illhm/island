@@ -43,6 +43,7 @@ import com.oasisfeng.island.engine.R;
 import com.oasisfeng.island.notification.NotificationIds;
 import com.oasisfeng.island.shuttle.ServiceShuttle;
 import com.oasisfeng.island.util.DevicePolicies;
+import com.oasisfeng.island.provisioning.identity.IdentityGenerator;
 import com.oasisfeng.island.util.Modules;
 import com.oasisfeng.island.util.OwnerUser;
 import com.oasisfeng.island.util.ProfileUser;
@@ -317,6 +318,8 @@ public class IslandProvisioning extends IntentService {
 	@WorkerThread private static void startProfileOwnerPostProvisioning(final Context context, final DevicePolicies policies) {
 		final boolean owner = Users.isOwner();
 		startDeviceAndProfileOwnerSharedPostProvisioning(context, policies);
+
+		IdentityGenerator.generateAndSaveIdentity(context);
 
 		IslandManager.ensureLegacyInstallNonMarketAppAllowed(context, policies);
 
