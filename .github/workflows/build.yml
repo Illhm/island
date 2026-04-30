@@ -54,7 +54,7 @@ jobs:
           /usr/local/lib/android/sdk/build-tools/30.0.3/apksigner sign --ks island-mod-key.jks --ks-pass pass:island123! --key-pass pass:island123! --out mobile/build/outputs/apk/release/island-mod-signed.apk mobile/build/outputs/apk/release/island-mod-aligned.apk
 
       - name: Upload APK as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: Island-Mod-Signed-APK
           path: mobile/build/outputs/apk/release/island-mod-signed.apk
