@@ -35,26 +35,34 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
+      - name: Generate Keystore
+        run: |
+          keytool -genkey -v -keystore island-mod-key.jks -alias island-mod -keyalg RSA -keysize 2048 -validity 10000 -storepass "island123!" -keypass "island123!" -dname "CN=Island Mod, OU=Android, O=OasisFeng, L=Unknown, S=Unknown, C=US"
+
       - name: Sign Android APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: mobile/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          # Find the unsigned release APK
+          APK_PATH=$(find mobile/build/outputs/apk/release -name "*-unsigned.apk" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find mobile/build/outputs/apk/release -name "*.apk" | head -n 1)
+          fi
+
+          # Zipalign the APK
+          /usr/local/lib/android/sdk/build-tools/30.0.3/zipalign -v -p 4 $APK_PATH mobile/build/outputs/apk/release/island-mod-aligned.apk
+
+          # Sign the APK using the dynamically generated keystore
+          /usr/local/lib/android/sdk/build-tools/30.0.3/apksigner sign --ks island-mod-key.jks --ks-pass pass:island123! --key-pass pass:island123! --out mobile/build/outputs/apk/release/island-mod-signed.apk mobile/build/outputs/apk/release/island-mod-aligned.apk
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v3
         with:
           name: Island-Mod-Signed-APK
-          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+          path: mobile/build/outputs/apk/release/island-mod-signed.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{steps.sign_app.outputs.signedReleaseFile}}
+          files: mobile/build/outputs/apk/release/island-mod-signed.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
