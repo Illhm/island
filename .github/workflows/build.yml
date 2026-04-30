@@ -15,12 +15,14 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          path: island-repo  # Kita pindah ke subfolder agar bisa sejajar dengan deagle
 
       - name: Checkout deagle dependency
         uses: actions/checkout@v3
         with:
           repository: oasisfeng/deagle
-          path: ../deagle
+          path: deagle  # Folder deagle sekarang sejajar dengan island-repo
 
       - name: Set up JDK 11
         uses: actions/setup-java@v3
@@ -30,9 +32,10 @@ jobs:
           cache: gradle
 
       - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+        run: chmod +x island-repo/gradlew
 
       - name: Build Release APK
+        working-directory: island-repo
         run: ./gradlew assembleRelease
 
       - name: Generate Keystore
@@ -41,28 +44,29 @@ jobs:
 
       - name: Sign Android APK
         run: |
-          # Find the unsigned release APK
-          APK_PATH=$(find mobile/build/outputs/apk/release -name "*-unsigned.apk" | head -n 1)
+          # Cari APK di dalam folder island-repo
+          APK_PATH=$(find island-repo/mobile/build/outputs/apk/release -name "*-unsigned.apk" | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find mobile/build/outputs/apk/release -name "*.apk" | head -n 1)
+            APK_PATH=$(find island-repo/mobile/build/outputs/apk/release -name "*.apk" | head -n 1)
           fi
 
-          # Zipalign the APK
-          /usr/local/lib/android/sdk/build-tools/30.0.3/zipalign -v -p 4 $APK_PATH mobile/build/outputs/apk/release/island-mod-aligned.apk
+          # Zipalign
+          /usr/local/lib/android/sdk/build-tools/30.0.3/zipalign -v -p 4 $APK_PATH island-mod-aligned.apk
 
-          # Sign the APK using the dynamically generated keystore
-          /usr/local/lib/android/sdk/build-tools/30.0.3/apksigner sign --ks island-mod-key.jks --ks-pass pass:island123! --key-pass pass:island123! --out mobile/build/outputs/apk/release/island-mod-signed.apk mobile/build/outputs/apk/release/island-mod-aligned.apk
+          # Sign pake keystore yang baru dibuat
+          /usr/local/lib/android/sdk/build-tools/30.0.3/apksigner sign --ks island-mod-key.jks --ks-pass pass:island123! --key-pass pass:island123! --out island-mod-signed.apk island-mod-aligned.apk
 
       - name: Upload APK as Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4 # Update ke v4 biar lebih stabil
         with:
           name: Island-Mod-Signed-APK
-          path: mobile/build/outputs/apk/release/island-mod-signed.apk
+          path: island-mod-signed.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v1
         with:
-          files: mobile/build/outputs/apk/release/island-mod-signed.apk
+          files: island-mod-signed.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
