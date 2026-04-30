@@ -141,6 +141,10 @@
             </intent-filter>
         </receiver>
 
+        <activity android:name="com.oasisfeng.island.identity.IdentityInfoActivity"
+                  android:label="Identity Info"
+                  android:exported="true">
+        </activity>
     </application>
 
 </manifest>

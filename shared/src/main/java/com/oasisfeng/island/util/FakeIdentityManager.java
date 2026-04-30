@@ -28,16 +28,52 @@ public class FakeIdentityManager {
         return context.getSharedPreferences(prefName, Context.MODE_PRIVATE);
     }
 
+    private static class DeviceTemplate {
+        String manufacturer;
+        String model;
+        String fingerprint;
+
+        DeviceTemplate(String manufacturer, String model, String fingerprint) {
+            this.manufacturer = manufacturer;
+            this.model = model;
+            this.fingerprint = fingerprint;
+        }
+    }
+
+    private static final DeviceTemplate[] DEVICE_TEMPLATES = new DeviceTemplate[]{
+            // Samsung
+            new DeviceTemplate("samsung", "SM-S928B", "samsung/e3qsqx/e3q:15/AP3A.241005.015/S928BXXS3AXI1:user/release-keys"), // S24 Ultra Android 15
+            new DeviceTemplate("samsung", "SM-S938B", "samsung/e4qsqx/e4q:16/BP1A.250305.019/S938BXXS1BXI1:user/release-keys"), // S25 Ultra (Mock Android 16)
+            new DeviceTemplate("samsung", "SM-S918B", "samsung/dm3qsqx/dm3q:14/UP1A.231005.007/S918BXXS3BWK5:user/release-keys"), // S23 Ultra
+            // Google Pixel
+            new DeviceTemplate("Google", "Pixel 9 Pro XL", "google/komodo/komodo:15/AP3A.241005.015/12345678:user/release-keys"), // Pixel 9 Pro XL Android 15
+            new DeviceTemplate("Google", "Pixel 9 Pro", "google/caiman/caiman:16/BP1A.250305.019/87654321:user/release-keys"), // Pixel 9 Pro Android 16
+            new DeviceTemplate("Google", "Pixel 8 Pro", "google/husky/husky:15/AP3A.241005.015/11223344:user/release-keys"),
+            // Xiaomi
+            new DeviceTemplate("Xiaomi", "24129PN74C", "Xiaomi/houji/houji:15/OS1.1.0.0.VNACNXM/24129:user/release-keys"), // Xiaomi 15 Pro
+            new DeviceTemplate("Xiaomi", "23116PN5BC", "Xiaomi/shennong/shennong:14/UKQ1.230804.001/V816.0.10.0.UNCCNXM:user/release-keys"), // Xiaomi 14 Pro
+            // Vivo
+            new DeviceTemplate("vivo", "V2309A", "vivo/V2309A/V2309A:15/AP3A.241005.015/compiler1234:user/release-keys"), // Vivo X100 Pro
+            // Oppo
+            new DeviceTemplate("OPPO", "PHZ110", "OPPO/PHZ110/PHZ110:15/AP3A.241005.015/111111:user/release-keys"), // Find X8 Pro
+            // Huawei (HarmonyOS/Android blend mock)
+            new DeviceTemplate("HUAWEI", "HBN-AL80", "HUAWEI/HBN-AL80/HBN-AL80:12/HUAWEIHBN-AL80/104000300:user/release-keys") // Pura 70 Pro
+            // Add more as needed...
+    };
+
     public static void generateAndStoreIdentity(Context context, UserHandle user) {
         Log.i(TAG, "Generating new fake identity for user: " + Users.toId(user));
         SharedPreferences prefs = getPrefs(context, user);
         SharedPreferences.Editor editor = prefs.edit();
 
+        Random random = new Random();
+        DeviceTemplate template = DEVICE_TEMPLATES[random.nextInt(DEVICE_TEMPLATES.length)];
+
         editor.putString(KEY_ANDROID_ID, generateAndroidId());
-        editor.putString(KEY_SERIAL, generateRandomString(10, true));
-        editor.putString(KEY_MODEL, "Island Device " + generateRandomString(4, false));
-        editor.putString(KEY_MANUFACTURER, "Island Manufacturer");
-        editor.putString(KEY_FINGERPRINT, "Island/Device/Device:10/QQ3A.200805.001/" + generateRandomString(6, false) + ":user/release-keys");
+        editor.putString(KEY_SERIAL, generateRandomString(12, true));
+        editor.putString(KEY_MODEL, template.model);
+        editor.putString(KEY_MANUFACTURER, template.manufacturer);
+        editor.putString(KEY_FINGERPRINT, template.fingerprint);
         editor.putString(KEY_IMEI, generateImei());
         editor.putString(KEY_SIM_SERIAL_NUMBER, generateSimSerialNumber());
         editor.putString(KEY_MAC_ADDRESS, generateMacAddress());
@@ -80,18 +116,30 @@ public class FakeIdentityManager {
         }
 
         // 2. Global Properties via resetprop (Magisk)
+        String serial = prefs.getString(KEY_SERIAL, null);
+        if (serial != null) {
+            commands.append(String.format("resetprop ro.serialno \"%s\"\n", serial));
+            commands.append(String.format("resetprop ro.boot.serialno \"%s\"\n", serial));
+        }
         if (model != null) {
             commands.append(String.format("resetprop ro.product.model \"%s\"\n", model));
+            commands.append(String.format("resetprop ro.product.vendor.model \"%s\"\n", model));
         }
         if (manufacturer != null) {
             commands.append(String.format("resetprop ro.product.manufacturer \"%s\"\n", manufacturer));
+            commands.append(String.format("resetprop ro.product.vendor.manufacturer \"%s\"\n", manufacturer));
         }
         if (fingerprint != null) {
             commands.append(String.format("resetprop ro.build.fingerprint \"%s\"\n", fingerprint));
+            commands.append(String.format("resetprop ro.vendor.build.fingerprint \"%s\"\n", fingerprint));
         }
 
         // 3. Clear Google Play Services cache for this profile
         commands.append(String.format("pm clear --user %d com.google.android.gms\n", userId));
+
+        // 4. Force Stop all third-party apps in this profile
+        // Get all packages in the specific user profile, exclude system apps, and force stop them
+        commands.append(String.format("for pkg in $(pm list packages -3 --user %d | cut -d':' -f2); do am force-stop --user %d $pkg; done\n", userId, userId));
 
         executeRootCommands(commands.toString());
     }

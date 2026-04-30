@@ -1,0 +1,61 @@
+name: Build & Release
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Java 17
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+
+    - name: Clone Deagle Dependency
+      run: git clone https://github.com/oasisfeng/deagle.git ../deagle
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Generate Keystore
+      run: |
+        keytool -genkey -v -keystore debug.jks -keyalg RSA -keysize 2048 -validity 10000 -alias myalias -storepass password123 -keypass password123 -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
+
+    - name: Build Release APK
+      run: ./gradlew assembleRelease
+
+    - name: Sign APK
+      uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: mobile/build/outputs/apk/release
+        signingKeyBase64: "" # Not using base64 key
+        signingKey: debug.jks
+        alias: myalias
+        keyStorePassword: password123
+        keyPassword: password123
+      env:
+        BUILD_TOOLS_VERSION: "30.0.3"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Signed-APK
+        path: mobile/build/outputs/apk/release/*-signed.apk
+
+    - name: Automatic Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest-build
+        files: mobile/build/outputs/apk/release/*-signed.apk
+        generate_release_notes: true
