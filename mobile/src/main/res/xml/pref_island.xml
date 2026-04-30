@@ -58,6 +58,22 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:key="key_identity_info" android:title="Device Identity Info">
+
+        <Preference
+            android:key="key_identity_model"
+            android:title="Spoofed Model"
+            android:summary="Unknown"
+            android:selectable="false" />
+
+        <Preference
+            android:key="key_identity_android_id"
+            android:title="Spoofed Android ID"
+            android:summary="Unknown"
+            android:selectable="false" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:key="@string/key_setup" android:title="@string/pref_setup_header">
 
         <Preference

@@ -26,6 +26,7 @@ import com.oasisfeng.hack.Hack;
 import com.oasisfeng.island.analytics.Analytics;
 import com.oasisfeng.island.mobile.BuildConfig;
 import com.oasisfeng.island.mobile.R;
+import com.oasisfeng.island.provisioning.identity.IdentityGenerator;
 import com.oasisfeng.island.util.DeviceAdmins;
 import com.oasisfeng.island.util.DevicePolicies;
 import com.oasisfeng.island.util.Hacks;
@@ -204,6 +205,9 @@ public class IslandSetup {
 
 	@ProfileUser private static void destroyProfile(final Activity activity) {
 		if (Users.isOwner()) throw new IllegalStateException("Must be called in managed profile.");
+
+		IdentityGenerator.clearIdentity(activity);
+
 		final DevicePolicies policies = new DevicePolicies(activity);
 		try {
 			policies.execute(DevicePolicyManager::clearCrossProfileIntentFilters);
