@@ -41,6 +41,10 @@ jobs:
         }
         DEP
 
+    - name: Fix JCenter Repositories
+      run: |
+        sed -i 's/jcenter()/mavenCentral()\n        maven { url "https:\/\/maven.aliyun.com\/repository\/jcenter" }\n        jcenter()/g' build.gradle
+
     - name: Make gradlew executable
       run: chmod +x ./gradlew
 
