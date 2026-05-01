@@ -26,7 +26,7 @@ internal object AppInstallerUtils {
 	@JvmStatic fun ensureSystemPackageEnabledAndUnfrozen(context: Context, intent: Intent): Boolean {
 		val resolve = context.packageManager.resolveActivity(intent, MATCH_UNINSTALLED_PACKAGES or MATCH_SYSTEM_ONLY)
 				?: return false
-		if (Apps.isInstalledInCurrentUser(resolve.activityInfo.applicationInfo)) return true
+		if (Apps.of(context).isInstalledInCurrentUser(resolve.activityInfo.packageName)) return true
 		return DevicePolicies(context).run { isProfileOwner && (enableSystemAppByIntent(intent)
 				|| IslandManager.ensureAppFreeToLaunch(context, resolve.activityInfo.packageName).isEmpty()) }
 	}

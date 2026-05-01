@@ -18,7 +18,7 @@ import com.oasisfeng.island.util.Users;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
+import com.oasisfeng.android.util.Supplier;
 
 import static android.content.Context.LAUNCHER_APPS_SERVICE;
 import static android.content.Intent.ACTION_MAIN;

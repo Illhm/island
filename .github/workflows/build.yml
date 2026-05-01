@@ -30,6 +30,11 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
+#<<<<<<< jules-5816895162318595915-ccb0b204
+      - name: Build Release APK
+        working-directory: island-repo
+        run: ./gradlew assembleRelease -x lint
+#=======
     - name: Clone Deagle Dependency & Fix missing dependencies
       run: |
         git clone https://github.com/oasisfeng/deagle.git ../deagle
@@ -40,6 +45,7 @@ jobs:
             implementation 'androidx.recyclerview:recyclerview:1.2.1'
         }
         DEP
+#>>>>>>> master
 
     - name: Make gradlew executable
       run: chmod +x ./gradlew

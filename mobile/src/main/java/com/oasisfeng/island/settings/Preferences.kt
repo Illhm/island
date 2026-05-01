@@ -31,3 +31,5 @@ fun Preference.onClick(block: Preference.() -> Unit) { onPreferenceClickListener
 inline fun TwoStatePreference.onChange(crossinline block: (Boolean) -> Boolean) = setOnPreferenceChangeListener { _, v -> block(v as Boolean) }
 inline fun EditTextPreference.onChange(crossinline block: (String) -> Boolean) = setOnPreferenceChangeListener { _, v -> block(v as String) }
 fun TwoStatePreference.lock(checked: Boolean) { isChecked = checked; isSelectable = false }
+inline fun <T: Preference> PreferenceFragment.setup(key: String, crossinline block: T.() -> Unit)
+        = @Suppress("UNCHECKED_CAST") (findPreference(key) as? T)?.apply { block() }

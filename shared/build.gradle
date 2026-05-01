@@ -40,6 +40,13 @@ android {
 
 dependencies {
     api project(':deagle')
+    implementation 'net.sourceforge.streamsupport:android-retrostreams:1.7.0'
+    implementation 'androidx.browser:browser:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.0.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-core:2.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
     api 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.jetbrains:annotations:15.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
@@ -50,7 +57,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics:17.6.0'
     implementation 'com.google.firebase:firebase-config:19.2.0'
     implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
-    implementation 'com.oasisfeng.condom:library:2.5.0'
+    implementation 'com.oasisfeng.condom:library:3.0.0'
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.10.0'
 

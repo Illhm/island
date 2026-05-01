@@ -26,7 +26,7 @@ import kotlinx.coroutines.withContext
 @RequiresApi(P) class OpsManager(private val activity: Activity, private val permission: String, private val op: Int) {
 
 	internal fun startOpsManager(prompt: Int) = GlobalScope.launch(Dispatchers.Main) {
-		val progress = Dialogs.buildProgress(activity, R.string.prompt_appops_loading).indeterminate().onCancel { mCanceled = true }.start()
+		val progress = Dialogs.buildProgress(activity, R.string.prompt_appops_loading).indeterminate().start(); progress.setOnCancelListener { mCanceled = true }
 		val apps = buildSortedAppList()
 		if (mCanceled) return@launch
 		progress.dismiss()
@@ -37,7 +37,7 @@ import kotlinx.coroutines.withContext
 
 	private fun show(apps: List<AppInfoWithOps>, prompt: Int) {
 		val checkedItems = BooleanArray(apps.size) { i -> ! apps[i].mRevoked }
-		Dialogs.buildCheckList(activity, activity.getString(prompt), apps.map { it.mLabel }.toTypedArray(), checkedItems) { _, which, checked ->
+		Dialogs.Builder(activity).setTitle(activity.getString(prompt)).setMultiChoiceItems(apps.map { it.mLabel }.toTypedArray(), checkedItems) { _, which, checked ->
 			apps[which].also { if (checked) it.resetToDefault() else it.revoke() }
 		}.setNeutralButton(R.string.action_revoke_all) { _, _ ->
 			Dialogs.buildAlert(activity, R.string.dialog_title_warning, R.string.prompt_appops_revoke_for_all_users_apps)
@@ -54,13 +54,17 @@ import kotlinx.coroutines.withContext
 			if (isUserAppOrUpdatedNonPrivilegeSystemApp(it.applicationInfo))
 				entries[it.packageName] = AppInfoWithOps(it.applicationInfo, it.packageName !in mOpsRevokedPkgs) }
 		if (mCanceled) return@withContext null
+
+
 		// Frozen apps and apps with explicit app-op revoked
 		val apps = activity.packageManager.getInstalledPackages(GET_PERMISSIONS or MATCH_UNINSTALLED_PACKAGES)
 		if (mCanceled) return@withContext null
+
 		apps.forEach {
 			val pkg = it.packageName; val app = it.applicationInfo
-			if (pkg !in entries && Apps.isInstalledInCurrentUser(app) && isUserAppOrUpdatedNonPrivilegeSystemApp(app)
+			if (pkg !in entries && Apps.of(activity).isInstalledInCurrentUser(app.packageName) && isUserAppOrUpdatedNonPrivilegeSystemApp(app)
 					&& (pkg in mOpsRevokedPkgs || it.requestedPermissions?.contains(permission) == true)) {
+
 				if (mCanceled) return@withContext null
 				entries[pkg] = AppInfoWithOps(app, false) }}
 		return@withContext entries.values.sortedWith(compareBy({ ! it.mRevoked }, { ! it.mGranted }, { it.mSystem }, { it.mLabel }))

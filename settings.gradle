@@ -1,3 +1,4 @@
 include 'shared', 'engine', 'mobile', 'fileprovider', 'installer', 'watcher', 'open'
 include 'assembly'
 include ':deagle'; project(':deagle').projectDir = new File(settingsDir, '../deagle/library')
+include ':setup-wizard-lib'

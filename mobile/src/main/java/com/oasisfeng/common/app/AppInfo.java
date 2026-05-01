@@ -25,7 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
-import java.util.function.Supplier;
+import com.oasisfeng.android.util.Supplier;
 
 import static android.content.Context.LAUNCHER_APPS_SERVICE;
 import static java.util.Objects.requireNonNull;

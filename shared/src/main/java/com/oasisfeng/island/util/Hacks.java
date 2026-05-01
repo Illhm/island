@@ -149,7 +149,7 @@ public class Hacks {
 			int getMode();
 		}
 
-		@Hack.Fallback(-1) int checkOpNoThrow(int op, int uid, String pkg);
+		int checkOpNoThrow(int op, int uid, String pkg);
 		@RequiresPermission(GET_APP_OPS_STATS) @Nullable List<PackageOps> getOpsForPackage(int uid, String pkg, @Nullable int[] ops);
 		@RequiresPermission(GET_APP_OPS_STATS) @Nullable List<PackageOps> getPackagesForOps(@Nullable int[] ops);
 		void setMode(int code, int uid, String packageName, @Mode int mode);
@@ -158,7 +158,7 @@ public class Hacks {
 		void resetAllModes();
 
 		/** Retrieve the default mode for the operation. */
-		@Hack.Fallback(-1) @Mode int opToDefaultMode(final int op);
+		@Mode int opToDefaultMode(final int op);
 		/** Retrieve the permission associated with an operation, or null if there is not one. */
 		@Nullable String opToPermission(int op);
 	}
