@@ -48,7 +48,7 @@ jobs:
         BUILD_TOOLS_VERSION: "30.0.3"
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@v4
       with:
         name: Signed-APK
         path: mobile/build/outputs/apk/release/*-signed.apk
