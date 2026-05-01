@@ -30,8 +30,16 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-    - name: Clone Deagle Dependency
-      run: git clone https://github.com/oasisfeng/deagle.git ../deagle
+    - name: Clone Deagle Dependency & Fix missing dependencies
+      run: |
+        git clone https://github.com/oasisfeng/deagle.git ../deagle
+        cat << 'DEP' >> ../deagle/library/build.gradle
+        dependencies {
+            implementation 'com.google.android.material:material:1.3.0'
+            implementation 'androidx.appcompat:appcompat:1.3.1'
+            implementation 'androidx.recyclerview:recyclerview:1.2.1'
+        }
+        DEP
 
     - name: Make gradlew executable
       run: chmod +x ./gradlew
@@ -41,7 +49,7 @@ jobs:
         keytool -genkey -v -keystore debug.jks -keyalg RSA -keysize 2048 -validity 10000 -alias myalias -storepass password123 -keypass password123 -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
 
     - name: Build Release APK
-      run: JAVA_HOME=$JAVA_HOME_11_X64 ./gradlew assembleRelease -x :deagle:compileReleaseJavaWithJavac
+      run: JAVA_HOME=$JAVA_HOME_11_X64 ./gradlew assembleRelease
 
     - name: Sign APK
       uses: r0adkll/sign-android-release@v1
