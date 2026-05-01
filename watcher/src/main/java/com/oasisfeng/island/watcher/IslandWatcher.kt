@@ -111,7 +111,7 @@ import kotlin.coroutines.suspendCoroutine
 				pm.setComponentEnabledSetting(dummyHome, COMPONENT_ENABLED_STATE_DISABLED, DONT_KILL_APP)
 				val user = result.getParcelableExtra<UserHandle>(Intent.EXTRA_USER)
 				Log.i(TAG, "Island is deactivated: ${user?.toId()}")
-				return Toasts.showShort(context, "Island is deactivated.") }
+				return android.widget.Toast.makeText(context, "Island is deactivated.", android.widget.Toast.LENGTH_SHORT).show() }
 		}
 
 		private fun makeDefaultHome(home: ComponentName): Boolean {

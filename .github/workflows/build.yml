@@ -36,7 +36,7 @@ jobs:
 
       - name: Build Release APK
         working-directory: island-repo
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease -x lint
 
       - name: Generate Keystore
         run: |

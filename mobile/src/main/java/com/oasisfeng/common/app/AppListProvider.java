@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
+import com.oasisfeng.android.util.Supplier;
 import java.util.stream.Stream;
 
 /**

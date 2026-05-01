@@ -18,7 +18,7 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.util.Date;
-import java.util.function.Supplier;
+import com.oasisfeng.android.util.Supplier;
 
 import javax.security.auth.x500.X500Principal;
 
