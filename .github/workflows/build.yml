@@ -62,6 +62,7 @@ jobs:
         keyPassword: password123
       env:
         BUILD_TOOLS_VERSION: "30.0.3"
+        SKIP_JDK_VERSION_CHECK: "true"
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
