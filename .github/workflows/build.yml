@@ -1,72 +1,84 @@
-name: Build and Release Island-Mod
+name: Build & Release
 
 on:
   push:
     branches:
-      - main
-    tags:
-      - 'v*'
-  workflow_dispatch:
+      - '**'
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          path: island-repo  # Kita pindah ke subfolder agar bisa sejajar dengan deagle
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Checkout deagle dependency
-        uses: actions/checkout@v3
-        with:
-          repository: oasisfeng/deagle
-          path: deagle  # Folder deagle sekarang sejajar dengan island-repo
+    # 1. Java 17 untuk Setup Android SDK (SDK Manager butuh ini)
+    - name: Set up Java 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          java-version: '11'
-          distribution: 'temurin'
-          cache: gradle
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x island-repo/gradlew
+    # 2. Switch ke Java 11 untuk Compile (Gradle 6.5 butuh ini)
+    - name: Set up Java 11
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '11'
 
+#<<<<<<< jules-5816895162318595915-ccb0b204
       - name: Build Release APK
         working-directory: island-repo
         run: ./gradlew assembleRelease -x lint
+#=======
+    - name: Clone Deagle Dependency & Fix missing dependencies
+      run: |
+        git clone https://github.com/oasisfeng/deagle.git ../deagle
+        cat << 'DEP' >> ../deagle/library/build.gradle
+        dependencies {
+            implementation 'com.google.android.material:material:1.3.0'
+            implementation 'androidx.appcompat:appcompat:1.3.1'
+            implementation 'androidx.recyclerview:recyclerview:1.2.1'
+        }
+        DEP
+#>>>>>>> master
 
-      - name: Generate Keystore
-        run: |
-          keytool -genkey -v -keystore island-mod-key.jks -alias island-mod -keyalg RSA -keysize 2048 -validity 10000 -storepass "island123!" -keypass "island123!" -dname "CN=Island Mod, OU=Android, O=OasisFeng, L=Unknown, S=Unknown, C=US"
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
 
-      - name: Sign Android APK
-        run: |
-          # Cari APK di dalam folder island-repo
-          APK_PATH=$(find island-repo/mobile/build/outputs/apk/release -name "*-unsigned.apk" | head -n 1)
-          if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find island-repo/mobile/build/outputs/apk/release -name "*.apk" | head -n 1)
-          fi
+    - name: Generate Temporary Keystore
+      run: |
+        keytool -genkey -v -keystore debug.jks -keyalg RSA -keysize 2048 -validity 10000 -alias myalias -storepass password123 -keypass password123 -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
 
-          # Zipalign
-          /usr/local/lib/android/sdk/build-tools/30.0.3/zipalign -v -p 4 $APK_PATH island-mod-aligned.apk
+    - name: Build Release APK
+      run: ./gradlew assembleRelease
+      env:
+        SKIP_JDK_VERSION_CHECK: "true"
 
-          # Sign pake keystore yang baru dibuat
-          /usr/local/lib/android/sdk/build-tools/30.0.3/apksigner sign --ks island-mod-key.jks --ks-pass pass:island123! --key-pass pass:island123! --out island-mod-signed.apk island-mod-aligned.apk
+    # 3. Manual Signing (Lebih stabil untuk keystore lokal hasil generate)
+    - name: Sign APK manually
+      run: |
+        APK_PATH=$(find mobile/build/outputs/apk/release/ -name "*.apk" ! -name "*unsigned*" | head -n 1)
+        BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+        $BUILD_TOOLS_PATH/apksigner sign --ks debug.jks --ks-pass pass:password123 --out mobile/build/outputs/apk/release/Island-Mod-Signed.apk $APK_PATH
 
-      - name: Upload APK as Artifact
-        uses: actions/upload-artifact@v4 # Update ke v4 biar lebih stabil
-        with:
-          name: Island-Mod-Signed-APK
-          path: island-mod-signed.apk
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Signed-APK
+        path: mobile/build/outputs/apk/release/Island-Mod-Signed.apk
 
-      - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: island-mod-signed.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+    - name: Automatic Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+      with:
+        tag_name: latest-build
+        files: mobile/build/outputs/apk/release/Island-Mod-Signed.apk
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
