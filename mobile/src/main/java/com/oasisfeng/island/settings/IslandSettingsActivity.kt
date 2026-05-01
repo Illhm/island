@@ -101,7 +101,7 @@ class IslandSettingsFragment: android.preference.PreferenceFragment() {
                 val entries = pkgs.map { it.applicationInfo.loadLabel(pm) }.toTypedArray()
                 val allowedPackages: Set<String> = policies.invoke(DPM::getCrossProfilePackages)
                 val allowed = BooleanArray(entries.size) { index -> pkgs[index].packageName in allowedPackages }
-                Dialogs.Builder(activity).setTitle(activity.getText(R.string.prompt_manage_cross_profile_apps)).setMultiChoiceItems(
+                Dialogs.buildAlert(activity, R.string.prompt_manage_cross_profile_apps, 0).setMultiChoiceItems(
                         entries, allowed) { _, which, checked -> allowed[which] = checked }
                         .setNeutralButton(R.string.action_close) { _,_ ->
                             pkgs.mapIndexedNotNullTo(ArraySet()) { index, pkg -> if (allowed[index]) pkg.packageName else null }

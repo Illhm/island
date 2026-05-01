@@ -37,7 +37,7 @@ import kotlinx.coroutines.withContext
 
 	private fun show(apps: List<AppInfoWithOps>, prompt: Int) {
 		val checkedItems = BooleanArray(apps.size) { i -> ! apps[i].mRevoked }
-		Dialogs.Builder(activity).setTitle(activity.getString(prompt)).setMultiChoiceItems(apps.map { it.mLabel }.toTypedArray(), checkedItems) { _, which, checked ->
+		Dialogs.buildAlert(activity, prompt, 0).setMultiChoiceItems(apps.map { it.mLabel }.toTypedArray(), checkedItems) { _, which, checked ->
 			apps[which].also { if (checked) it.resetToDefault() else it.revoke() }
 		}.setNeutralButton(R.string.action_revoke_all) { _, _ ->
 			Dialogs.buildAlert(activity, R.string.dialog_title_warning, R.string.prompt_appops_revoke_for_all_users_apps)
@@ -95,7 +95,7 @@ import kotlinx.coroutines.withContext
 		val pkg: String = info.packageName
 		val mRevoked = mOpsRevokedPkgs.contains(pkg)
 
-		val mSystem = Apps.isSystem(info)
+		val mSystem = (info.flags and ApplicationInfo.FLAG_SYSTEM) != 0
 	}
 
 	private val mAppsHelper = Apps.of(activity)
