@@ -30,11 +30,6 @@ jobs:
         distribution: 'temurin'
         java-version: '11'
 
-#<<<<<<< jules-5816895162318595915-ccb0b204
-      - name: Build Release APK
-        working-directory: island-repo
-        run: ./gradlew assembleRelease -x lint
-#=======
     - name: Clone Deagle Dependency & Fix missing dependencies
       run: |
         git clone https://github.com/oasisfeng/deagle.git ../deagle
@@ -45,7 +40,6 @@ jobs:
             implementation 'androidx.recyclerview:recyclerview:1.2.1'
         }
         DEP
-#>>>>>>> master
 
     - name: Make gradlew executable
       run: chmod +x ./gradlew
@@ -55,11 +49,33 @@ jobs:
         keytool -genkey -v -keystore debug.jks -keyalg RSA -keysize 2048 -validity 10000 -alias myalias -storepass password123 -keypass password123 -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
 
     - name: Build Release APK
-      run: ./gradlew assembleRelease
+      # Saya tambahkan parameter '-x lint' dari blok conflict sebelumnya untuk mempercepat build
+      run: ./gradlew assembleRelease -x lint
       env:
         SKIP_JDK_VERSION_CHECK: "true"
 
     # 3. Manual Signing (Lebih stabil untuk keystore lokal hasil generate)
+    - name: Sign APK manually
+      run: |
+        APK_PATH=$(find mobile/build/outputs/apk/release/ -name "*.apk" ! -name "*unsigned*" | head -n 1)
+        BUILD_TOOLS_PATH=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+        $BUILD_TOOLS_PATH/apksigner sign --ks debug.jks --ks-pass pass:password123 --out mobile/build/outputs/apk/release/Island-Mod-Signed.apk $APK_PATH
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Signed-APK
+        path: mobile/build/outputs/apk/release/Island-Mod-Signed.apk
+
+    - name: Automatic Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+      with:
+        tag_name: latest-build
+        files: mobile/build/outputs/apk/release/Island-Mod-Signed.apk
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Sign APK manually
       run: |
         APK_PATH=$(find mobile/build/outputs/apk/release/ -name "*.apk" ! -name "*unsigned*" | head -n 1)
