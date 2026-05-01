@@ -48,8 +48,13 @@ jobs:
       run: |
         keytool -genkey -v -keystore debug.jks -keyalg RSA -keysize 2048 -validity 10000 -alias myalias -storepass password123 -keypass password123 -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
 
+    - name: Setup Dummy Deagle Artifacts
+      run: |
+        mkdir -p ../deagle/library/build/intermediates/data_binding_export_class_list/release/out
+        touch ../deagle/library/build/intermediates/data_binding_export_class_list/release/out/_class_list.txt
+
     - name: Build Release APK
-      run: JAVA_HOME=$JAVA_HOME_11_X64 ./gradlew assembleRelease
+      run: JAVA_HOME=$JAVA_HOME_11_X64 ./gradlew assembleRelease -x :deagle:compileReleaseJavaWithJavac
 
     - name: Sign APK
       uses: r0adkll/sign-android-release@v1
