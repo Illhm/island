@@ -64,7 +64,7 @@ import com.oasisfeng.island.util.Users
 
 		val names = getAllNames(this)
 		val labels = users.map { user -> if (Users.isOwner(user)) getText(R.string.tab_mainland) else names[user] }.toTypedArray()
-		Dialogs.Builder(this).setItems(labels) { _, which ->
+		Dialogs.buildAlert(this, null, null).setItems(labels) { _, which ->
 			if (which == 0) super.onHeaderClick(header, position)
 			else launchSettingsActivityAsUser(users[which])
 		}.show()
