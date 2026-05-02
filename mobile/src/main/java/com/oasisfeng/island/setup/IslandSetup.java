@@ -64,7 +64,7 @@ public class IslandSetup {
 		// Phase 1: Create profile		TODO: Skip profile creation or remove existent profile first, if profile is already present (probably left by unsuccessful setup)
 		final List<String> commands = Arrays.asList("setprop fw.max_users 10",
 				"pm create-user --profileOf " + Users.toId(Process.myUserHandle()) + " --managed Island", "echo END");
-		SafeAsyncTask.execute(activity, context -> Shell.SU.run(commands), (context, result) -> {
+		SafeAsyncTask.execute(activity, context -> Shell.SU.run(commands), (Activity context, java.util.List<String> result) -> {
 			final List<UserInfo> profiles = Hack.into(requireNonNull(context.getSystemService(Context.USER_SERVICE)))
 					.with(UserManagerHack.class).getProfiles(Users.toId(Users.current()));
 			final Optional<UserHandle> profile_pending_setup = profiles.stream().map(UserInfo::getUserHandle)
@@ -112,7 +112,7 @@ public class IslandSetup {
 		commands.append("dpm set-profile-owner --user ").append(profile_id).append(" ").append(flat_admin_component);
 		commands.append(" && am start-user ").append(profile_id);
 
-		SafeAsyncTask.execute(activity, context -> Shell.SU.run(commands.toString()), (context, result) -> {
+		SafeAsyncTask.execute(activity, context -> Shell.SU.run(commands.toString()), (Activity context, java.util.List<String> result) -> {
 			final LauncherApps launcher_apps = requireNonNull((LauncherApps) context.getSystemService(Context.LAUNCHER_APPS_SERVICE));
 			if (launcher_apps.getActivityList(context.getPackageName(), profile).isEmpty()) {
 				Analytics.$().event("setup_island_root_failed").withRaw("command", commands.toString())
